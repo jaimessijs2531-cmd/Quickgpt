@@ -2,11 +2,39 @@ import { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import { assets } from '../assets/assets'
 import moment from 'moment'
+import toast from 'react-hot-toast'
 
 const Sidebar = ({ isMenuOpen, setisMenuOpen }) => {
 
-    const { chats, selectedchats, theme, setTheme, user, navigate, setselectedChat } = useAppContext()
+    const { chats, selectedchats, theme, setTheme, user, navigate, setselectedChat, craeteNewchat, axios, setChats, fetchUsersChats, setToken } = useAppContext()
     const [search, setsearch] = useState("")
+
+    const logOut = () => {
+        localStorage.removeItem('token')
+        setToken(null);
+        toast.success('Logged Out SucessFully ')
+    }
+
+    const deleteChat = async (e, chatId) => {
+        try {
+            e.stopPropagation();
+            const confirm = window.confirm('Are You Sure You Want to delete this chat ?')
+            if (!confirm) return
+            const { data } = await axios.post('/api/chat/delete', { chatId }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+
+            })
+            if (data.sucess) {
+                setChats(prev => prev.filter(chat => chat._id !== chatId))
+                await fetchUsersChats();
+                toast.success(data.message)
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
+    }
     return (
         <div
             className={`
@@ -19,7 +47,7 @@ const Sidebar = ({ isMenuOpen, setisMenuOpen }) => {
 
 
             <img src={theme === "dark" ? assets.logo_full : assets.logo_full_dark} className='w-full max-w-48:' alt="" />
-            <button className='flex justify-center items-center w-full py-2 mt-10 text-white  bg-gradient-to-r from-[#A456F7] to-[#3D81F6] text-sm rounded-md cursor-pointer'><span className='mr-2 text-xl'>+</span>New Chat</button>
+            <button onClick={craeteNewchat} className='flex justify-center items-center w-full py-2 mt-10 text-white  bg-gradient-to-r from-[#A456F7] to-[#3D81F6] text-sm rounded-md cursor-pointer'><span className='mr-2 text-xl'>+</span>New Chat</button>
             <div className='flex items-center gap-2 p-3 mt-4 border border-gray-400 dark:border-white/20 rounded-md'>
                 <img src={assets.search_icon} className='w-4 not-dark:invert' alt="" />
                 <input onChange={(e) => setsearch(e.target.value)} value={search} type="text" placeholder='Search Conversations' className='text-xs placeholder:text-gray-400 outline-none' />
@@ -34,18 +62,18 @@ const Sidebar = ({ isMenuOpen, setisMenuOpen }) => {
                                 <p className='truncate w-full'> {chat.messages.length > 0 ? chat.messages[0].content.slice(0, 32) : chat.name}</p>
                                 <p className='text-xs text-gray-500 dark:text-[#B1A6C0]'>{moment(chat.updatedAt).fromNow()}</p>
                             </div>
-                            <img src={assets.bin_icon} className='hidden group-hover:block w-4 cursor-pointer not-dark:invert' alt="" />
+                            <img onClick={e => toast.promise(deleteChat(e, chat._id), { loading: 'deleting...' })} src={assets.bin_icon} className='hidden group-hover:block w-4 cursor-pointer not-dark:invert' alt="" />
                         </div>
                     ))
                 }
             </div>
 
-            <div onClick={() => { navigate("/community"); setisMenuOpen(false) }} className='flex items-center gap-2 p-3 mt-4  border border-gray-300 dark:border-white/15 rounded-md cursor-pointer hover:scale-103 transition-all'>
+            {/* <div onClick={() => { navigate("/community"); setisMenuOpen(false) }} className='flex items-center gap-2 p-3 mt-4  border border-gray-300 dark:border-white/15 rounded-md cursor-pointer hover:scale-103 transition-all'>
                 <img src={assets.gallery_icon} className='w-4.5 not-dark:invert' alt="" />
                 <div className='flex flex-col text-sm'>
                     <p>Coummunity Images</p>
                 </div>
-            </div>
+            </div> */}
 
 
             <div onClick={() => { navigate("/credits"); setisMenuOpen(false) }} className='flex items-center gap-2 p-3 mt-4  border border-gray-300 dark:border-white/15 rounded-md cursor-pointer hover:scale-103 transition-all'>
@@ -82,7 +110,7 @@ const Sidebar = ({ isMenuOpen, setisMenuOpen }) => {
             <div className='flex items-center gap-3 p-3 mt-4  border border-gray-300 dark:border-white/15 rounded-md cursor-pointer group'>
                 <img src={assets.user_icon} className='w-7 rounded-full not-dark:invert' alt="" />
                 <p className='flex-1 text-sm dark:text-primary truncate'>{user ? user.name : "Login Your Account"}</p>
-                {user && <img src={assets.logout_icon} className='h-5 cursor-pointer hidden not-dark:invert group-hover:block'></img>}
+                {user && <img onClick={logOut} src={assets.logout_icon} className='h-5 cursor-pointer hidden not-dark:invert group-hover:block'></img>}
             </div>
 
             <img onClick={() => setisMenuOpen(false)} src={assets.close_icon} className='absolute top-3 right-3 w-5 h-5 cursor-pointer md:hidden not-dark:invert' alt="" />

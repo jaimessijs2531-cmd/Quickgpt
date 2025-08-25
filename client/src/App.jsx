@@ -1,4 +1,4 @@
-import  { useState } from 'react'
+import { useState } from 'react'
 import Sidebar from './components/Sidebar'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Chatbot from './components/Chatbot'
@@ -9,35 +9,38 @@ import "./assets/prism.css"
 import Loading from './pages/Loading'
 import { useAppContext } from './context/AppContext'
 import Login from './pages/Login'
+import { Toaster } from "react-hot-toast"
+
 
 const App = () => {
-const{user} =useAppContext()
-  const [isMenuOpen,setisMenuOpen] = useState(false)
+  const { user, loadingUser } = useAppContext()
+  const [isMenuOpen, setisMenuOpen] = useState(false)
 
-  const {pathname} = useLocation()
+  const { pathname } = useLocation()
 
-  if(pathname ==="/loading")return<Loading/>
+  if (pathname === "/loading" || loadingUser) return <Loading />
   return (
     <>
-    {!isMenuOpen && <img src={assets.menu_icon} className='absolute top-3 left-3 w-8 h-8 cursor-pointer md:hidden not-dark:invert' onClick={()=>setisMenuOpen(true)}></img>}
+      <Toaster />
+      {!isMenuOpen && <img src={assets.menu_icon} className='absolute top-3 left-3 w-8 h-8 cursor-pointer md:hidden not-dark:invert' onClick={() => setisMenuOpen(true)}></img>}
 
-    {user ? (
-<div className='dark:bg-gradient-to-b from-[#242124] to-[#000000] dark:text-white'>
-      <div className='flex h-screen w-screen'>
-        <Sidebar isMenuOpen={isMenuOpen} setisMenuOpen={setisMenuOpen}/>
-        <Routes>
-          <Route path='/' element={<Chatbot/>}/>
-          <Route path='/credits' element={<Credits/>}/>
-          <Route path='/community' element={<Community/>}/>
-        </Routes>
-      </div>
-    </div>
-    ):(
-<div className='bg-gradient-to-b from-[#242124] to-[#000000] flex items-center justify-center h-screen w-screen'>
-  <Login/>
-</div>
-    )}
-    
+      {user ? (
+        <div className='dark:bg-gradient-to-b from-[#242124] to-[#000000] dark:text-white'>
+          <div className='flex h-screen w-screen'>
+            <Sidebar isMenuOpen={isMenuOpen} setisMenuOpen={setisMenuOpen} />
+            <Routes>
+              <Route path='/' element={<Chatbot />} />
+              <Route path='/credits' element={<Credits />} />
+              <Route path='/community' element={<Community />} />
+            </Routes>
+          </div>
+        </div>
+      ) : (
+        <div className='bg-gradient-to-b from-[#242124] to-[#000000] flex items-center justify-center h-screen w-screen'>
+          <Login />
+        </div>
+      )}
+
 
     </>
   )
