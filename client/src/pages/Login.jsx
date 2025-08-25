@@ -17,7 +17,7 @@ const Login = () => {
         try {
             const { data } = await axios.post(url, { name, email, password });
 
-            if (data.success) {
+            if (data.sucess) {
                 setToken(data.token);
                 localStorage.setItem("token", data.token);
                 toast.success(state === "login" ? "Login successful!" : "Account created!");
